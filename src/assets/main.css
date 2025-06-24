@@ -1,12 +1,14 @@
+/* THE ONLY ADDITION IS THIS FIRST LINE */
 @import 'highlight.js/styles/tokyo-night-dark.css';
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap');
-/* THE FIX: Define consistent z-index layers for the entire application */
+
 :root {
   --z-desktop: 1;
   --z-taskbar: 150;
   --z-start-menu: 200;
-  --z-windows: 100; /* This is the base z-index for windows */
-  --z-onboard-modal: 1000; /* A very high z-index for third-party modals */
+  --z-windows: 100;
+  --z-onboard-modal: 1000;
 }
 
 @tailwind base;
@@ -17,6 +19,8 @@ body {
   background-color: #1a1b26; 
   @apply text-text-primary font-secondary overflow-hidden;
 }
+
+/* ... all of your other existing styles remain unchanged ... */
 
 .animated-bg {
   @apply w-full h-full relative overflow-hidden;
@@ -66,14 +70,12 @@ body {
   @apply h-8 flex items-center justify-between px-2 rounded-t-lg cursor-grab active:cursor-grabbing select-none;
 }
 
-/* THE FIX: New, simpler style for minimized windows. It just hides them. */
 .minimized-window {
   opacity: 0 !important;
   pointer-events: none !important;
   transition: opacity 0.2s ease-out;
 }
 
-/* THE FIX: New rule to force the Web3-Onboard modal to the top layer. */
 w3o-modal {
   z-index: var(--z-onboard-modal) !important;
 }

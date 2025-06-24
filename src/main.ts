@@ -66,7 +66,6 @@
 
 // app.mount('#app')
 
-
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import router from './router'
@@ -74,7 +73,7 @@ import App from './App.vue'
 import './assets/main.css'
 import { MotionPlugin } from '@vueuse/motion'
 
-// 1. Import the plugin
+// 1. Import the highlight.js Vue plugin
 import hljsVuePlugin from '@highlightjs/vue-plugin'
 
 const app = createApp(App)
@@ -83,7 +82,7 @@ app.use(createPinia())
 app.use(router)
 app.use(MotionPlugin)
 
-// 2. Register it with your app
+// 2. Register the plugin with your Vue app
 app.use(hljsVuePlugin)
 
 app.mount('#app')

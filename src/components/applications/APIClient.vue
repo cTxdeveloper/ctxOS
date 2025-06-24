@@ -45,8 +45,11 @@
         </div>
         <div class="flex-grow overflow-auto p-2 bg-black/30">
           <div v-if="isLoading" class="text-text-secondary">Loading response...</div>
-          <div v-else-if="response.error" class="text-warning whitespace-pre-wrap">{{ response.error }}</div>
-          <!-- The Syntax Highlighter Component -->
+          <!-- THE FIX: The error display is now more user-friendly -->
+          <div v-else-if="response.error" class="text-warning whitespace-pre-wrap p-2 bg-warning/10 rounded-md">
+            <p class="font-bold mb-2">Request Failed</p>
+            {{ response.error }}
+          </div>
           <highlightjs
             v-else-if="response.data"
             language="json"
@@ -62,7 +65,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 
-// Define the structure for an API request and example
 interface ApiRequest {
   method: 'GET' | 'POST';
   url: string;
@@ -72,7 +74,6 @@ interface ExampleRequest extends ApiRequest {
   name: string;
 }
 
-// --- STATE ---
 const isLoading = ref(false);
 const request = reactive<ApiRequest>({
   method: 'GET',
@@ -86,14 +87,13 @@ const response = reactive({
   error: null as string | null,
 });
 
-// Example requests for the user to try
 const examples: ExampleRequest[] = [
   { name: 'GitHub User', method: 'GET', url: 'https://api.github.com/users/octocat' },
   { name: 'Public APIs List', method: 'GET', url: 'https://api.publicapis.org/entries' },
   { name: 'Fake POST', method: 'POST', url: 'https://jsonplaceholder.typicode.com/posts' },
+  // Add an example that is likely to fail (CORS error) to show error handling
+  { name: 'CORS Fail Example', method: 'GET', url: 'https://google.com' },
 ];
-
-// --- METHODS ---
 
 const loadExample = (example: ExampleRequest) => {
   request.method = example.method;
@@ -102,41 +102,46 @@ const loadExample = (example: ExampleRequest) => {
 
 const sendRequest = async () => {
   isLoading.value = true;
-  // Reset previous response
   response.status = null;
   response.statusText = null;
   response.data = null;
   response.error = null;
 
+  if (!request.url.trim()) {
+      response.error = "URL cannot be empty.";
+      isLoading.value = false;
+      return;
+  }
+
   try {
     const res = await fetch(request.url, {
       method: request.method,
-      // For POST requests, you could add a body here
+      // NOTE: For a real app, you'd need a proxy to get around CORS issues
+      // for most APIs. For this portfolio, we stick to APIs that allow open access.
     });
 
     response.status = res.status;
     response.statusText = res.statusText;
-
     const responseData = await res.json();
-    // Pretty-print the JSON for the highlighter
     response.data = JSON.stringify(responseData, null, 2);
 
     if (!res.ok) {
-      // If the response is not OK, we still show the data but can treat it as an error state
-      console.warn(`Request finished with status: ${res.status}`);
+      console.warn(`Request finished with a non-2xx status: ${res.status}`);
     }
 
   } catch (err: any) {
     console.error("API Request Error:", err);
-    response.error = err.message;
+    // THE FIX: Provide a more helpful, user-facing error message.
+    if (err.message.includes('Failed to fetch')) {
+        response.error = `Network Error: Could not resolve the host.\n\nPlease check your internet connection and ensure the domain name is correct.\n\nDetails: ${err.message}`;
+    } else {
+        response.error = err.message;
+    }
   } finally {
     isLoading.value = false;
   }
 }
 
-// --- COMPUTED ---
-
-// Dynamically sets the color of the status code badge
 const statusColor = computed(() => {
   if (!response.status) return '';
   if (response.status >= 200 && response.status < 300) return 'bg-accent2/20 text-accent2';
